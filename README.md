@@ -1,5 +1,7 @@
 # 🚀 Yarının Yarışları (Races of Tomorrow) | The Next Era of Deep-Tech
 
+![Yarının Yarışları Banner](assets/banner.jpg)
+
 > "Bugünün popüler konularına değil; 5 yıl, 10 yıl sonrasının teknolojilerine, yarının yarışlarına şimdiden hazırlanın. Teknoloji lineer büyümez; eksponansiyel patlamalarla çağ atlar."
 
 Bu depo, günübirlik yazılım trendlerinin, hantal kurumsal yapıların ve geleneksel mühendislik paradigmalarının çok ötesine bakmak için inşa edilmiştir. **Yarının Yarışları**, 2030 ve sonrasının derin teknoloji (deep-tech) standartlarını sıfırdan kurgulayan bağımsız bir araştırma, mimari ve geliştirme merkezidir.
@@ -49,13 +51,36 @@ Küresel derin teknoloji savaşlarının ve seri üretimin kalbi olan Asya-Pasif
 
 Kod tabanı ve araştırmalar, donanım seviyesinden en üst düzey bilişsel soyutlamalara kadar katmanlı bir mimaride organize edilmiştir:
 
-| Dizin | Odak Alanı | Teknolojik Kapsam |
-| :--- | :--- | :--- |
-| `01_bare_metal_core/` | Donanımla doğrudan temas eden, işletim sistemsiz (OS-less) çekirdek rutinler. | `C++20/23`, Pointers, Register-Level Control, PID, LPF |
-| `02_cognitive_edge/` | Uç cihazlarda (Edge) çalışan yapay zeka modelleri ve inferans motorları. | `Python`, Quantized Weights, RNN Feedback Dynamics, JSON |
-| `03_swarm_protocols/` | Merkeziyetsiz sistemlerin anlık iletişim ve karar alma mekanizmaları. | Artificial Potential Fields (APF), P2P Multicast, Obstacle Avoidance |
-| `04_energy_dynamics/` | Katı hal batarya sistemlerine özel, tüketim ve termal optimizasyon algoritmaları. | State of Health (SOH) Degradation, CPU Throttling, Thermal Safe Limits |
-| `05_china_tech_watch/` | Doğu ekosistemindeki derin teknoloji sızıntıları, RISC-V ve robotik analizleri. | Ar-Ge Raporları, Patent Analizleri, OSINT İstihbaratı |
+| Dizin | Odak Alanı | Teknolojik Kapsam | Temel Dosyalar |
+| :--- | :--- | :--- | :--- |
+| `01_bare_metal_core/` | Donanımla doğrudan temas eden, işletim sistemsiz (OS-less) çekirdek rutinler. | `C++20/23`, Pointers, Register-Level Control, PID, LPF | [bsp_register_map.h](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/01_bare_metal_core/bsp_register_map.h), [neuromorphic_control.cpp](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/01_bare_metal_core/neuromorphic_control.cpp) |
+| `02_cognitive_edge/` | Uç cihazlarda (Edge) çalışan yapay zeka modelleri ve inferans motorları. | `Python`, Quantized Weights, RNN Feedback Dynamics, JSON | [inference_engine.py](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/02_cognitive_edge/inference_engine.py), [weights_config.json](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/02_cognitive_edge/weights_config.json) |
+| `03_swarm_protocols/` | Merkeziyetsiz sistemlerin anlık iletişim ve karar alma mekanizmaları. | Artificial Potential Fields (APF), P2P Multicast, Obstacle Avoidance | [swarm_orchestrator.py](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/03_swarm_protocols/swarm_orchestrator.py) |
+| `04_energy_dynamics/` | Katı hal batarya sistemlerine özel, tüketim ve termal optimizasyon algoritmaları. | State of Health (SOH) Degradation, CPU Throttling, Thermal Safe Limits | [battery_optimizer.py](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/04_energy_dynamics/battery_optimizer.py) |
+| `05_china_tech_watch/` | Doğu ekosistemindeki derin teknoloji sızıntıları, RISC-V ve robotik analizleri. | Ar-Ge Raporları, Patent Analizleri, OSINT İstihbaratı | [china_deep_tech_intel.md](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/05_china_tech_watch/china_deep_tech_intel.md) |
+
+---
+
+## 🔄 Simbiyotik Mimari & Veri Akışı
+
+Bu repodaki modüller statik kütüphaneler olmaktan öte, bipedal otonom humanoid sistemlerinde birbiriyle sürekli etkileşim halinde olan dinamik bir veri akış şeması oluşturur:
+
+```
+[ Donanım Katmanı ] ──(Raw IMU/Sıcaklık)──► [ 01_bare_metal_core (LPF/PID) ]
+                                                   │
+                                            (Sensor Registers)
+                                                   ▼
+[ 04_energy_dynamics ] ◄──(Sıcaklık/SOC)── [ 02_cognitive_edge (INT4 RNN) ]
+  (Throttling Limits)                              │
+         │                                  (Torque Offsets)
+         ▼                                         ▼
+[ CPU/Motor Sürücü ] ◄────────────────────── [ Aktüatör PWM ]
+```
+
+1.  **Duyusal Algılama & Temizleme:** `01_bare_metal_core` üzerindeki Low-Pass Filter (LPF), ham IMU register'larındaki vibrasyon parazitlerini temizler.
+2.  **Karar & Çıkarım:** Filtrelenmiş veri NPU bellek adreslerine yazılır. `02_cognitive_edge` altındaki INT4 yapay zeka çıkarım motoru, önceki stabilizasyon geçmişini (recurrent state) kullanarak bir sonraki adımın yörünge tork sapmasını hesaplar.
+3.  **Enerji Koruma & Güvenlik:** `04_energy_dynamics` batarya hücre sıcaklığını ve SOC düşümünü izler. Eğer batarya 42°C üzerine çıkarsa CPU saat hızını (`cpu_clock_mhz`) 240MHz'den aşağıya çeker ve motor gücünü kısarak `01_bare_metal_core` PID çıkış limitlerini dinamik olarak sınırlandırır.
+4.  **Sürü İşbirliği:** Robot bir sürü üyesiyse, `03_swarm_protocols` APF (Yapay Potansiyel Alanlar) ile lider robottan konum bilgisini alır, çevredeki statik engellerden kaçma vektörlerini hesaplar ve elde edilen navigasyon verilerini tork denetleyicisine iletir.
 
 ---
 
