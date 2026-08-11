@@ -249,7 +249,7 @@ def run_multi_agent_simulation():
                 if clearance < min_clearance:
                     min_clearance = clearance
                     
-            warning = "⚠️ NEAR OBSTACLE!" if min_clearance < 0.6 else "OK"
+            warning = "[ALERT] NEAR OBSTACLE!" if min_clearance < 0.6 else "OK"
             print(f"  +- Agent {state.id} [{state.role:<8}] Pos: ({state.position_x:+.2f}, {state.position_y:+.2f}) | Clear: {min_clearance:.2f}m | Status: {warning}")
         time.sleep(0.05)
         

@@ -18,6 +18,13 @@
 extern "C" {
 #endif
 
+#ifdef HOST_SIMULATION
+extern uint8_t simulated_npu_mem[];
+extern uint8_t simulated_actuator_mem[];
+extern uint8_t simulated_power_sys_mem[];
+extern uint8_t simulated_imu_mem[];
+#endif
+
 // Base addresses for peripherals
 #define NPU_BASE_ADDR            0x40080000U // Neural Processing Unit Control
 #define ACTUATOR_BASE_ADDR       0x40090000U // Joint Actuator Controller (PWM/FOC)
@@ -38,7 +45,11 @@ typedef struct {
     volatile uint32_t IRQ_EN;        /**< 0x1C: Interrupt Enable Register */
 } NPU_TypeDef;
 
+#ifdef HOST_SIMULATION
+#define NPU ((NPU_TypeDef *) simulated_npu_mem)
+#else
 #define NPU ((NPU_TypeDef *) NPU_BASE_ADDR)
+#endif
 
 // NPU CTRL register masks
 #define NPU_CTRL_START          (1U << 0)
@@ -65,7 +76,12 @@ typedef struct {
 
 // 12-DOF System support (e.g. 12 Joint Actuators for basic humanoid limbs)
 #define ACTUATOR_COUNT 12
+
+#ifdef HOST_SIMULATION
+#define ACTUATOR ((volatile Actuator_TypeDef *) simulated_actuator_mem)
+#else
 #define ACTUATOR ((volatile Actuator_TypeDef *) ACTUATOR_BASE_ADDR)
+#endif
 
 /**
  * @brief Power & Energy Dynamics Interface (optimized for Solid-State Battery management)
@@ -79,7 +95,11 @@ typedef struct {
     volatile uint32_t SLEEP_TIMER;  /**< 0x14: Deep sleep wake up timer ticks (microseconds) */
 } PowerSys_TypeDef;
 
+#ifdef HOST_SIMULATION
+#define POWER_SYS ((PowerSys_TypeDef *) simulated_power_sys_mem)
+#else
 #define POWER_SYS ((PowerSys_TypeDef *) POWER_SYS_BASE_ADDR)
+#endif
 
 /**
  * @brief IMU Register Interface for balancing loops
@@ -94,7 +114,11 @@ typedef struct {
     volatile uint32_t STATUS;       /**< 0x0C: Sensor data ready status */
 } IMU_TypeDef;
 
+#ifdef HOST_SIMULATION
+#define IMU ((IMU_TypeDef *) simulated_imu_mem)
+#else
 #define IMU ((IMU_TypeDef *) IMU_BASE_ADDR)
+#endif
 
 #ifdef __cplusplus
 }

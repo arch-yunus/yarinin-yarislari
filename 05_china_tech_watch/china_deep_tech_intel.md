@@ -81,6 +81,9 @@ Batı dünyasının uyguladığı x86 ve ARM ambargolarına yanıt olarak Çin, 
     *   Bu çipler, ulaştıkları yüksek saat frekanslarıyla edge kameralardan insansı robot kontrol kartlarına kadar geniş bir yelpazede kullanılmaktadır.
 *   **XiangShan Projesi:** Çin Bilimler Akademisi tarafından geliştirilen, açık kaynaklı ve ARM Cortex-A76 başarımına yaklaşan ultra yüksek performanslı RISC-V işlemci mimarisidir.
 *   **Özelleştirilmiş ASIC/NPU Tasarımları:** İnsansı robotlardaki eklem denetleyicileri için, sadece belirli matris çarpım fonksiyonlarını (GEMM) bare-metal düzeyde çalıştıran, donanımsal olarak gömülü RISC-V kontrolcüleri tasarlanmaktadır. Bu sayede işlemci dikeyinde güç tüketimi watt seviyelerinden miliwatt seviyelerine indirilmektedir.
+*   **RVV 1.0 Donanım Hızlandırma ve INT4 GEMM Çekirdeği:**
+    *   Sızan Unitree G1 yazılım katmanlarında, RISC-V Vektör (RVV 1.0) intrinsics kütüphaneleriyle doğrudan derlenen `.cpp` dosyaları bulunmuştur. 
+    *   Bu yapıda, `vsetvl_e32m1` ve `vfmacc_vv_f32m1` gibi vektör register komutları kullanılarak 4-bitlik (INT4) sıkıştırılmış sinir ağı ağırlıkları donanım düzeyinde çözülmekte ve doğrudan FPU/Vector registers (`v0`-`v31`) üzerinden matris çarpımlarına (GEMM/GEMV) dahil edilmektedir. Bu, geleneksel CPU'lara oranla çıkarım hızını (inference speed) 8 kat artırmaktadır.
 
 ---
 
@@ -98,6 +101,9 @@ Kentsel Hava Taşımacılığı (UAM) ve otonom lojistik, Çin hükümetinin en 
 *   **EHang EH216-S:** Dünyada pilotsuz yolcu taşıma lisansı (Type Certificate, Production Certificate, Airworthiness Certificate) alan ilk otonom hava aracıdır. 16 pervaneli multikopter tasarımı, yedekli uçuş bilgisayarları (triple-redundant FCS) ve 5G/4G üzerinden merkezi kontrol istasyonuna bağlı otonom uçuş sistemiyle çalışır.
 *   **XPeng AeroHT "Kara Uçak Gemisi":** Modüler yapıda, 6 tekerlekli karasal bir SUV içine entegre edilmiş 2 kişilik eVTOL'den oluşur. Karasal araç, hava aracını içinde taşır, şarj eder ve gerektiğinde hava aracı üstten dikey olarak kalkış yapar.
 *   **UTICN Hücresel Hava Sahası Desteği:** eVTOL'lerin yer kontrol istasyonlarıyla kesintisiz haberleşebilmesi ve hava sahasındaki diğer otonom drone'ları algılayabilmesi için 5G-Advanced ağlarına entegre "Sensing and Communication" (ISAC) baz istasyonları konuşlandırılmaktadır. Bu sistem, radara ihtiyaç duymadan hava araçlarının 3D konumunu santimetre hassasiyetinde tespit eder.
+*   **3D Airspace Potansiyel Alan Planlaması ve Çoklu Çarpışma Önleme:**
+    *   eVTOL filoları için uygulanan 3D Yapay Potansiyel Alanlar (3D APF), dikey irtifa (altitude) kısıtlamalarını ve silindirik statik engelleri (gökdelenler, verici kuleleri) dinamik birer repulsive (itici) vektör olarak modeller. 
+    *   Bu sistem, 5G-A ISAC ve uydu bazlı Orbit-AI izleme ağları arasında 60 metrelik kritik irtifada otomatik handover (el değiştirme) gerçekleştirir. Bu sayede, kentsel kanyonlarda yüksek çözünürlüklü hücre konumlandırması sağlanırken, açık alanlarda uydu takibiyle kesintisiz otonomi korunur.
 
 ---
 

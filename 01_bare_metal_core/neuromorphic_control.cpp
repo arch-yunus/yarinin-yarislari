@@ -1,16 +1,19 @@
-/**
- * @file neuromorphic_control.cpp
- * @brief Comprehensive Bare-metal Neuromorphic Feedback Control Loop.
- * @details Implements a real-time bipedal stabilization loop with a Low-Pass Filter (LPF)
- *          for raw IMU sensor values, a PID Controller with anti-windup, and an automated
- *          joint calibration sequence. Designed to compile in C++23.
- */
-
 #include "bsp_register_map.h"
+#include "rvv_matrix_opt.h"
 #include <array>
 #include <concepts>
 #include <algorithm>
 #include <numbers>
+#include <cmath>
+
+#ifdef HOST_SIMULATION
+extern "C" {
+uint8_t simulated_npu_mem[sizeof(NPU_TypeDef)] = {0};
+uint8_t simulated_actuator_mem[sizeof(Actuator_TypeDef) * ACTUATOR_COUNT] = {0};
+uint8_t simulated_power_sys_mem[sizeof(PowerSys_TypeDef)] = {0};
+uint8_t simulated_imu_mem[sizeof(IMU_TypeDef)] = {0};
+}
+#endif
 
 // Control Loop Constants
 constexpr float DT = 0.002f;              // 500 Hz control loop frequency (2 ms)
@@ -163,6 +166,80 @@ extern "C" void init_system() {
 }
 
 /**
+ * @brief Runs NPU hardware inference using RVV matrix acceleration kernels.
+ *        This models the actual coprocessor execution flow.
+ */
+extern "C" void trigger_npu_hardware_inference() {
+    if (!(NPU->CTRL & NPU_CTRL_START)) {
+        return;
+    }
+    
+    NPU->STATUS &= ~NPU_STATUS_DONE;
+    NPU->STATUS |= NPU_STATUS_BUSY;
+    
+    const auto* npu_inputs = reinterpret_cast<const float*>(NPU->INPUT_ADDR);
+    auto* npu_outputs = reinterpret_cast<float*>(NPU->OUTPUT_ADDR);
+    const auto* packed_weights = reinterpret_cast<const uint8_t*>(NPU->WEIGHT_ADDR);
+    
+    if (npu_inputs == nullptr || npu_outputs == nullptr || packed_weights == nullptr) {
+        NPU->STATUS &= ~NPU_STATUS_BUSY;
+        NPU->STATUS |= NPU_STATUS_ERR;
+        return;
+    }
+    
+    struct NpuWeightsLayout {
+        uint8_t layer1_weights[16];      // 4x8 packed = 16 bytes
+        float layer1_scales[8];          // 8 floats
+        float layer1_biases[8];          // 8 floats
+        uint8_t layer2_weights[16];      // 8x4 packed = 16 bytes
+        float layer2_scales[4];          // 4 floats
+        float layer2_biases[4];          // 4 floats
+    };
+    
+    const auto* w_layout = reinterpret_cast<const NpuWeightsLayout*>(packed_weights);
+    
+    // Layer 1 forward: [4 inputs -> 8 hidden neurons]
+    float h1[8] = {0.0f};
+    rvv_gemv_int4(
+        w_layout->layer1_weights,
+        npu_inputs,
+        h1,
+        4,
+        8,
+        w_layout->layer1_scales,
+        w_layout->layer1_biases
+    );
+    
+    // Activation: Tanh
+    float h1_activated[8] = {0.0f};
+    for (int k = 0; k < 8; ++k) {
+        h1_activated[k] = std::tanh(h1[k]);
+    }
+    
+    // Layer 2 forward: [8 hidden neurons -> 4 outputs]
+    float out_val[4] = {0.0f};
+    rvv_gemv_int4(
+        w_layout->layer2_weights,
+        h1_activated,
+        out_val,
+        8,
+        4,
+        w_layout->layer2_scales,
+        w_layout->layer2_biases
+    );
+    
+    // Write predictions to outputs
+    npu_outputs[0] = out_val[0];
+    npu_outputs[1] = out_val[1];
+    npu_outputs[2] = out_val[2]; // Recurrent state 0
+    npu_outputs[3] = out_val[3]; // Recurrent state 1
+    
+    NPU->CTRL &= ~NPU_CTRL_START;
+    NPU->STATUS &= ~NPU_STATUS_BUSY;
+    NPU->STATUS |= NPU_STATUS_DONE;
+}
+
+/**
  * @brief Main 500 Hz balancing control step.
  * @details Reads raw sensor registers, filters pitch rates, updates PID,
  *          applies dynamic joint torque, and streams outputs to custom NPU layers.
@@ -205,5 +282,6 @@ extern "C" void run_balancing_step() {
         npu_inputs[3] = feedback_torque;
 
         NPU->CTRL |= NPU_CTRL_START; // Trigger async inference
+        trigger_npu_hardware_inference(); // Run synchronous step simulation
     }
 }

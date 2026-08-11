@@ -53,9 +53,9 @@ Kod tabanı ve araştırmalar, donanım seviyesinden en üst düzey bilişsel so
 
 | Dizin | Odak Alanı | Teknolojik Kapsam | Temel Dosyalar |
 | :--- | :--- | :--- | :--- |
-| `01_bare_metal_core/` | Donanımla doğrudan temas eden, işletim sistemsiz (OS-less) çekirdek rutinler. | `C++20/23`, Pointers, Register-Level Control, PID, LPF | [bsp_register_map.h](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/01_bare_metal_core/bsp_register_map.h), [neuromorphic_control.cpp](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/01_bare_metal_core/neuromorphic_control.cpp) |
+| `01_bare_metal_core/` | Donanımla doğrudan temas eden, işletim sistemsiz (OS-less) çekirdek rutinler. | `C++20/23`, Pointers, Register-Level Control, PID, LPF, RVV 1.0 | [bsp_register_map.h](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/01_bare_metal_core/bsp_register_map.h), [neuromorphic_control.cpp](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/01_bare_metal_core/neuromorphic_control.cpp), [rvv_matrix_opt.h](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/01_bare_metal_core/rvv_matrix_opt.h) |
 | `02_cognitive_edge/` | Uç cihazlarda (Edge) çalışan yapay zeka modelleri ve inferans motorları. | `Python`, Quantized Weights, RNN Feedback Dynamics, JSON | [inference_engine.py](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/02_cognitive_edge/inference_engine.py), [weights_config.json](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/02_cognitive_edge/weights_config.json) |
-| `03_swarm_protocols/` | Merkeziyetsiz sistemlerin anlık iletişim ve karar alma mekanizmaları. | Artificial Potential Fields (APF), P2P Multicast, Obstacle Avoidance | [swarm_orchestrator.py](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/03_swarm_protocols/swarm_orchestrator.py) |
+| `03_swarm_protocols/` | Merkeziyetsiz sistemlerin anlık iletişim ve karar alma mekanizmaları. | Artificial Potential Fields (APF), 3D Collision Avoidance, ISAC Tracking | [swarm_orchestrator.py](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/03_swarm_protocols/swarm_orchestrator.py), [evtol_traffic_ctrl.py](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/03_swarm_protocols/evtol_traffic_ctrl.py) |
 | `04_energy_dynamics/` | Katı hal batarya sistemlerine özel, tüketim ve termal optimizasyon algoritmaları. | State of Health (SOH) Degradation, CPU Throttling, Thermal Safe Limits | [battery_optimizer.py](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/04_energy_dynamics/battery_optimizer.py) |
 | `05_china_tech_watch/` | Doğu ekosistemindeki derin teknoloji sızıntıları, RISC-V ve robotik analizleri. | Ar-Ge Raporları, Patent Analizleri, OSINT İstihbaratı | [china_deep_tech_intel.md](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/05_china_tech_watch/china_deep_tech_intel.md) |
 
@@ -146,8 +146,8 @@ python 04_energy_dynamics/battery_optimizer.py
 - [x] **Faz 1:** Bare-Metal PID ve LPF denetleyici entegrasyonu, INT4 quantize recurrent çıkarım motoru.
 - [x] **Faz 2:** Yapay Potansiyel Alanlar (APF) ile sürü çarpışma engelleme mekanizmaları.
 - [x] **Faz 3:** Katı hal batarya hücre yaşlanma modeli (SOH) ve dinamik termal limit koruması.
-- [ ] **Faz 4:** RISC-V Vektör Uzantısı (RVV 1.0) için bare-metal assembly matris çarpım optimizasyonları.
-- [ ] **Faz 5:** Uydudan otonom eVTOL trafik protokollerinin (ISAC/5G-A) simüle edilmesi.
+- [x] **Faz 4:** RISC-V Vektör Uzantısı (RVV 1.0) için bare-metal assembly matris çarpım optimizasyonları.
+- [x] **Faz 5:** Uydudan otonom eVTOL trafik protokollerinin (ISAC/5G-A) simüle edilmesi.
 
 ---
 
