@@ -78,60 +78,41 @@ def draw_progress_bar(val: float, width: int = 15) -> str:
     color = GREEN if val > 0.5 else (YELLOW if val > 0.2 else RED)
     return f"{color}[{bar}] {val*100.0:.1f}%{RESET}"
 
-def run_symbiotic_orchestrator():
-    print(f"\n{BOLD}{CYAN}==========================================================================")
-    print("      YARININ YARISLARI - UNIFIED DEEP-TECH SYMBIOSIS SIMULATOR")
-    print(f"=========================================================================={RESET}")
-    
+def symbiotic_simulation_generator():
+    """Generates the real-time simulation state step-by-step."""
     # 1. Initialize Solid-State Battery & Power controller
-    # Models WeLion 150 kWh pack (360 Wh/kg) discharging under active stabilization loads
     battery = SolidStateBatteryPack(capacity_wh=150000.0, nominal_voltage=380.0, energy_density_whkg=360.0)
     power_ctrl = PowerStateController(battery)
     
-    # Let's seed battery warm and with high ambient temp to trigger throttling quickly
-    battery.temperature_k = 273.15 + 41.5 # 41.5 C internal temperature
-    ambient_temp = 273.15 + 38.0 # 38.0 C hot desert drone deck ambient
+    battery.temperature_k = 273.15 + 41.5
+    ambient_temp = 273.15 + 38.0
     
     # 2. Initialize Cognitive Recurrent Edge AI
     weights_path = os.path.join(os.path.dirname(__file__), "02_cognitive_edge", "weights_config.json")
-    try:
-        npu_engine = RecurrentCognitiveEdgeAI(weights_path)
-        print(f"  +- {GREEN}SUCCESS{RESET}: Cognitive recurrent edge AI engine online (INT4 packed).")
-    except Exception as e:
-        print(f"  +- {RED}ERROR{RESET}: Failed to load cognitive weights: {e}")
-        sys.exit(1)
+    npu_engine = RecurrentCognitiveEdgeAI(weights_path)
         
     # 3. Initialize 3D Airspace eVTOL Nodes
     fleet = [eVTOLNode(node_id=301), eVTOLNode(node_id=302), eVTOLNode(node_id=303)]
-    print(f"  +- {GREEN}SUCCESS{RESET}: 3D eVTOL flight control swarm online ({len(fleet)} agents).")
     
     # 4. Initialize Bare-metal feedback filters and controllers
     pitch_filter = SimulatedLowPassFilter(0.25)
     roll_filter = SimulatedLowPassFilter(0.25)
-    stabilizer_pid = SimulatedPidController(1.5, 0.2, 0.18, 60.0) # 60 N-m torque limit
+    stabilizer_pid = SimulatedPidController(1.5, 0.2, 0.18, 60.0)
     
-    time.sleep(1.0)
-    
-    print(f"\n{BOLD}Starting real-time simulation tracking...{RESET}\n")
-    
-    # Run simulation for 20 epochs
-    for epoch in range(1, 21):
+    epoch = 0
+    while True:
+        epoch += 1
         # A. Power Dynamics & Throttling
         system_current = power_ctrl.adjust_system_throttling()
-        # Heavy stabilization and motor control cycles drain battery
-        # We simulate a current load drawn from the battery pack
         battery.update(-system_current, 1.0, ambient_temp_k=ambient_temp)
         
-        # Limit control torque limits based on power throttling
         dynamic_torque_limit = stabilizer_pid.limit
         if power_ctrl.max_motor_power_w < 400.0:
-            # Power throttled: limit humanoid stabilizer peak forces
             stabilizer_pid.limit = 60.0 * (power_ctrl.max_motor_power_w / 400.0)
         else:
             stabilizer_pid.limit = 60.0
             
-        # B. Humanoid Balance Loop (simulated C++ registers logic)
-        # Simulate platform tilt oscillation (pitch) with random wind gust perturbations
+        # B. Humanoid Balance Loop
         t = epoch * 0.2
         raw_pitch_rate = 0.5 * math.sin(t) + random.uniform(-0.15, 0.15)
         raw_roll_rate = 0.3 * math.cos(t) + random.uniform(-0.1, 0.1)
@@ -139,15 +120,12 @@ def run_symbiotic_orchestrator():
         filtered_pitch_rate = pitch_filter.apply(raw_pitch_rate)
         filtered_roll_rate = roll_filter.apply(raw_roll_rate)
         
-        # Calculate estimated tilt based on raw sensor fusion
         estimated_tilt = raw_pitch_rate * 0.85 + random.uniform(-0.02, 0.02)
         
-        # PID torque output calculation
         target_tilt = 0.0
         stabilization_torque = stabilizer_pid.calculate(target_tilt, estimated_tilt)
         
         # C. Cognitive AI recurrent forecasting step
-        # Neural network concatenated inputs: [tilt, pitch_rate, roll_rate, torque] + past hidden state
         npu_inputs = [estimated_tilt, filtered_pitch_rate, filtered_roll_rate, stabilization_torque]
         
         start_time = time.perf_counter()
@@ -159,49 +137,107 @@ def run_symbiotic_orchestrator():
         for node in fleet:
             node.update_physics()
             
-        # Simulated multi-path communications exchange
         for sender in fleet:
             state = sender.get_state()
             for receiver in fleet:
                 if receiver.node_id != sender.node_id:
                     receiver.peers[sender.node_id] = state
                     
-        # E. Print Console Dashboard
-        print(f"{BOLD}{MAGENTA}--- TIME STEP TICK: {epoch:02d} ---{RESET}")
-        
-        # 1. Battery & Power state
-        temp_c = battery.temperature_k - 273.15
-        soc_bar = draw_progress_bar(battery.soc)
-        status_flag = f"{RED}THROTTLED{RESET}" if power_ctrl.cpu_clock_mhz < 240.0 else f"{GREEN}OPTIMAL{RESET}"
-        print(f"{BOLD}[BATTERY & THERMALS]{RESET}")
-        print(f"  SOC: {soc_bar} | SOH: {battery.soh*100.0:8.5f}% | Temp: {temp_c:.1f} C ({status_flag})")
-        print(f"  Voltage: {battery.voltage:.1f} V | CPU Clock: {power_ctrl.cpu_clock_mhz:.0f} MHz | Max Motor Pwr: {power_ctrl.max_motor_power_w:.0f} W")
-        
-        # 2. Humanoid control state (C++ & NPU coprocessor output)
-        print(f"{BOLD}[HUMANOID STABILIZATION]{RESET}")
-        print(f"  Est. Tilt: {estimated_tilt:+.4f} rad | Pitch Rate: {filtered_pitch_rate:+.4f} rad/s | Roll Rate: {filtered_roll_rate:+.4f} rad/s")
-        print(f"  Stabilization PID Torque: {stabilization_torque:+.2f} N-m (Limit: {stabilizer_pid.limit:.1f} N-m)")
-        print(f"  NPU Joint Predictions: Ankle={npu_offsets[0]:+.4f} N-m, Knee={npu_offsets[1]:+.4f} N-m | Latency: {npu_latency_us:.1f} us")
-        
-        # 3. eVTOL Swarm Status
-        print(f"{BOLD}[3D eVTOL SWARM TELEMETRY]{RESET}")
+        # State dictionary creation
+        swarm_data = []
         for node in fleet:
-            state = node.get_state()
-            # Check warning
+            st = node.get_state()
             min_clearance = float('inf')
             closest_obs = ""
             for obs in OBSTACLES_3D:
-                if state.z >= obs["z_min"] and state.z <= obs["z_max"]:
-                    dist = math.hypot(state.x - obs["x"], state.y - obs["y"])
+                if st.z >= obs["z_min"] and st.z <= obs["z_max"]:
+                    dist = math.hypot(st.x - obs["x"], st.y - obs["y"])
                     clear = dist - obs["radius"]
                     if clear < min_clearance:
                         min_clearance = clear
                         closest_obs = obs["name"]
-            alert_str = f"{RED}[ALERT] NEIGHBOR/OBSTACLE CLEARANCE: {min_clearance:.1f}m{RESET}" if min_clearance < 10.0 else f"{GREEN}AIRSPACE CLEAR{RESET}"
-            print(f"  Node {state.id} [{state.role:<8}] Pos: ({state.x:+.1f}, {state.y:+.1f}, {state.z:+.1f}) | Bat: {state.battery:.1f}% | Tracking: {state.tracking_source:<22} | {alert_str}")
+            
+            swarm_data.append({
+                "id": st.id,
+                "role": st.role,
+                "x": st.x, "y": st.y, "z": st.z,
+                "battery": st.battery,
+                "tracking": st.tracking_source,
+                "clearance": min_clearance
+            })
+                    
+        state_dict = {
+            "epoch": epoch,
+            "battery": {
+                "soc": battery.soc,
+                "soh": battery.soh,
+                "temperature_c": battery.temperature_k - 273.15,
+                "voltage": battery.voltage,
+                "cpu_clock_mhz": power_ctrl.cpu_clock_mhz,
+                "max_motor_power_w": power_ctrl.max_motor_power_w
+            },
+            "humanoid": {
+                "estimated_tilt": estimated_tilt,
+                "pitch_rate": filtered_pitch_rate,
+                "roll_rate": filtered_roll_rate,
+                "stabilization_torque": stabilization_torque,
+                "torque_limit": stabilizer_pid.limit,
+                "npu_ankle": npu_offsets[0],
+                "npu_knee": npu_offsets[1],
+                "npu_latency_us": npu_latency_us
+            },
+            "swarm": swarm_data
+        }
+        
+        yield state_dict
+
+def run_symbiotic_orchestrator():
+    print(f"\n{BOLD}{CYAN}==========================================================================")
+    print("      YARININ YARISLARI - UNIFIED DEEP-TECH SYMBIOSIS SIMULATOR")
+    print(f"=========================================================================={RESET}")
+    
+    try:
+        sim_gen = symbiotic_simulation_generator()
+        print(f"  +- {GREEN}SUCCESS{RESET}: Cognitive recurrent edge AI engine online (INT4 packed).")
+        print(f"  +- {GREEN}SUCCESS{RESET}: 3D eVTOL flight control swarm online.")
+    except Exception as e:
+        print(f"  +- {RED}ERROR{RESET}: Initialization failed: {e}")
+        sys.exit(1)
+        
+    time.sleep(1.0)
+    print(f"\n{BOLD}Starting real-time simulation tracking...{RESET}\n")
+    
+    # Run simulation for 20 epochs
+    for _ in range(20):
+        state = next(sim_gen)
+        epoch = state["epoch"]
+        
+        # E. Print Console Dashboard
+        print(f"{BOLD}{MAGENTA}--- TIME STEP TICK: {epoch:02d} ---{RESET}")
+        
+        # 1. Battery & Power state
+        bat = state["battery"]
+        soc_bar = draw_progress_bar(bat["soc"])
+        status_flag = f"{RED}THROTTLED{RESET}" if bat["cpu_clock_mhz"] < 240.0 else f"{GREEN}OPTIMAL{RESET}"
+        print(f"{BOLD}[BATTERY & THERMALS]{RESET}")
+        print(f"  SOC: {soc_bar} | SOH: {bat['soh']*100.0:8.5f}% | Temp: {bat['temperature_c']:.1f} C ({status_flag})")
+        print(f"  Voltage: {bat['voltage']:.1f} V | CPU Clock: {bat['cpu_clock_mhz']:.0f} MHz | Max Motor Pwr: {bat['max_motor_power_w']:.0f} W")
+        
+        # 2. Humanoid control state
+        hum = state["humanoid"]
+        print(f"{BOLD}[HUMANOID STABILIZATION]{RESET}")
+        print(f"  Est. Tilt: {hum['estimated_tilt']:+.4f} rad | Pitch Rate: {hum['pitch_rate']:+.4f} rad/s | Roll Rate: {hum['roll_rate']:+.4f} rad/s")
+        print(f"  Stabilization PID Torque: {hum['stabilization_torque']:+.2f} N-m (Limit: {hum['torque_limit']:.1f} N-m)")
+        print(f"  NPU Joint Predictions: Ankle={hum['npu_ankle']:+.4f} N-m, Knee={hum['npu_knee']:+.4f} N-m | Latency: {hum['npu_latency_us']:.1f} us")
+        
+        # 3. eVTOL Swarm Status
+        print(f"{BOLD}[3D eVTOL SWARM TELEMETRY]{RESET}")
+        for st in state["swarm"]:
+            alert_str = f"{RED}[ALERT] NEIGHBOR/OBSTACLE CLEARANCE: {st['clearance']:.1f}m{RESET}" if st['clearance'] < 10.0 else f"{GREEN}AIRSPACE CLEAR{RESET}"
+            print(f"  Node {st['id']} [{st['role']:<8}] Pos: ({st['x']:+.1f}, {st['y']:+.1f}, {st['z']:+.1f}) | Bat: {st['battery']:.1f}% | Tracking: {st['tracking']:<22} | {alert_str}")
             
         print("-" * 74)
-        time.sleep(0.3) # Fast-forward simulation speed
+        time.sleep(0.3)
         
     print(f"\n{BOLD}{GREEN}==========================================================================")
     print("          SYMBIOTIC REAL-TIME SIMULATION COMPLETED SUCCESSFULLY")

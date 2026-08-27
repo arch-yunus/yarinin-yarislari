@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yarının Yarışları | Digital Twin</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #58a6ff;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #8b949e;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 10px;
+        }
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .val-good { color: #3fb950; }
+        .val-warn { color: #d29922; }
+        .val-alert { color: #f85149; }
+        
+        .progress-bg {
+            background-color: #30363d;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #3fb950;
+            transition: width 0.1s linear;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: monospace;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #30363d;
+        }
+        th {
+            color: #8b949e;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 Yarının Yarışları | Symbiotic System Telemetry</h1>
+    
+    <div class="container">
+        
+        <!-- Energy Dynamics Card -->
+        <div class="card" id="energyCard">
+            <h2>🔋 Energy Dynamics (Solid State)</h2>
+            <div class="data-row"><span>State of Charge (SOC):</span><span id="socText"></span></div>
+            <div class="progress-bg"><div class="progress-bar" id="socBar" style="width: 100%;"></div></div>
+            <div class="data-row" style="margin-top: 15px;"><span>State of Health (SOH):</span><span id="sohText"></span></div>
+            <div class="data-row"><span>Temperature:</span><span id="tempText"></span></div>
+            <div class="data-row"><span>Bus Voltage:</span><span id="voltText"></span></div>
+            <div class="data-row"><span>CPU Clock Limit:</span><span id="cpuClockText"></span></div>
+            <div class="data-row"><span>Max Motor Power:</span><span id="powerLimitText"></span></div>
+        </div>
+
+        <!-- Humanoid Stabilization Card -->
+        <div class="card" id="humanoidCard">
+            <h2>🦾 Humanoid Edge-AI Stabilization</h2>
+            <div class="data-row"><span>Estimated Body Tilt:</span><span id="tiltText"></span></div>
+            <div class="data-row"><span>IMU Pitch Rate:</span><span id="pitchText"></span></div>
+            <div class="data-row"><span>IMU Roll Rate:</span><span id="rollText"></span></div>
+            <hr style="border: 1px solid #30363d;">
+            <div class="data-row"><span>PID Torque Demand:</span><span id="pidTorqueText"></span></div>
+            <div class="data-row"><span>Torque Throttling Limit:</span><span id="torqueLimitText"></span></div>
+            <hr style="border: 1px solid #30363d;">
+            <div class="data-row"><span>NPU Ankle Prediction:</span><span id="npuAnkleText"></span></div>
+            <div class="data-row"><span>NPU Knee Prediction:</span><span id="npuKneeText"></span></div>
+            <div class="data-row"><span>NPU Recurrent Latency:</span><span id="npuLatText"></span></div>
+        </div>
+        
+        <!-- Swarm Telemetry Card (Spans both columns) -->
+        <div class="card" style="grid-column: span 2;" id="swarmCard">
+            <h2>🛸 Autonomous 3D Swarm Orchestration</h2>
+            <table id="swarmTable">
+                <thead>
+                    <tr>
+                        <th>Node ID</th>
+                        <th>Role</th>
+                        <th>Position (X, Y, Z)</th>
+                        <th>Battery</th>
+                        <th>Tracking Protocol</th>
+                        <th>Clearance Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be injected via JS -->
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        const ws = new WebSocket(`ws://${window.location.host}/ws`);
+        
+        function formatVal(val, decimals=2, sign=false) {
+            let str = val.toFixed(decimals);
+            if(sign && val > 0) str = "+" + str;
+            return str;
+        }
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            
+            // Battery Update
+            const bat = data.battery;
+            document.getElementById('socText').innerText = formatVal(bat.soc * 100, 1) + " %";
+            document.getElementById('socBar').style.width = (bat.soc * 100) + "%";
+            if (bat.soc < 0.2) { document.getElementById('socBar').style.backgroundColor = "#f85149"; }
+            else if (bat.soc < 0.5) { document.getElementById('socBar').style.backgroundColor = "#d29922"; }
+            else { document.getElementById('socBar').style.backgroundColor = "#3fb950"; }
+            
+            document.getElementById('sohText').innerText = formatVal(bat.soh * 100, 5) + " %";
+            
+            const tempEl = document.getElementById('tempText');
+            tempEl.innerText = formatVal(bat.temperature_c, 1) + " °C";
+            if(bat.temperature_c > 41) tempEl.className = "val-alert"; else tempEl.className = "val-good";
+            
+            document.getElementById('voltText').innerText = formatVal(bat.voltage, 1) + " V";
+            
+            const clockEl = document.getElementById('cpuClockText');
+            clockEl.innerText = formatVal(bat.cpu_clock_mhz, 0) + " MHz";
+            if(bat.cpu_clock_mhz < 240) clockEl.className = "val-warn"; else clockEl.className = "val-good";
+            
+            document.getElementById('powerLimitText').innerText = formatVal(bat.max_motor_power_w, 0) + " W";
+            
+            // Humanoid Update
+            const hum = data.humanoid;
+            document.getElementById('tiltText').innerText = formatVal(hum.estimated_tilt, 4, true) + " rad";
+            document.getElementById('pitchText').innerText = formatVal(hum.pitch_rate, 4, true) + " rad/s";
+            document.getElementById('rollText').innerText = formatVal(hum.roll_rate, 4, true) + " rad/s";
+            
+            document.getElementById('pidTorqueText').innerText = formatVal(hum.stabilization_torque, 2, true) + " N-m";
+            document.getElementById('torqueLimitText').innerText = formatVal(hum.torque_limit, 1) + " N-m";
+            
+            document.getElementById('npuAnkleText').innerText = formatVal(hum.npu_ankle, 4, true) + " N-m";
+            document.getElementById('npuKneeText').innerText = formatVal(hum.npu_knee, 4, true) + " N-m";
+            document.getElementById('npuLatText').innerText = formatVal(hum.npu_latency_us, 1) + " us";
+            
+            // Swarm Update
+            const tbody = document.querySelector('#swarmTable tbody');
+            tbody.innerHTML = "";
+            data.swarm.forEach(node => {
+                const tr = document.createElement('tr');
+                
+                let clearanceHtml = `<span class="val-good">AIRSPACE CLEAR</span>`;
+                if(node.clearance < 10.0) {
+                    clearanceHtml = `<span class="val-alert">[ALERT] CLEARANCE: ${formatVal(node.clearance, 1)}m</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td>${node.id}</td>
+                    <td>${node.role}</td>
+                    <td>(${formatVal(node.x, 1, true)}, ${formatVal(node.y, 1, true)}, ${formatVal(node.z, 1, true)})</td>
+                    <td>${formatVal(node.battery, 1)}%</td>
+                    <td>${node.tracking}</td>
+                    <td>${clearanceHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        };
+    </script>
+</body>
+</html>

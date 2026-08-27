@@ -58,6 +58,8 @@ Kod tabanı ve araştırmalar, donanım seviyesinden en üst düzey bilişsel so
 | `03_swarm_protocols/` | Merkeziyetsiz sistemlerin anlık iletişim ve karar alma mekanizmaları. | Artificial Potential Fields (APF), 3D Collision Avoidance, ISAC Tracking | [swarm_orchestrator.py](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/03_swarm_protocols/swarm_orchestrator.py), [evtol_traffic_ctrl.py](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/03_swarm_protocols/evtol_traffic_ctrl.py) |
 | `04_energy_dynamics/` | Katı hal batarya sistemlerine özel, tüketim ve termal optimizasyon algoritmaları. | State of Health (SOH) Degradation, CPU Throttling, Thermal Safe Limits | [battery_optimizer.py](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/04_energy_dynamics/battery_optimizer.py) |
 | `05_china_tech_watch/` | Doğu ekosistemindeki derin teknoloji sızıntıları, RISC-V ve robotik analizleri. | Ar-Ge Raporları, Patent Analizleri, OSINT İstihbaratı | [china_deep_tech_intel.md](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/05_china_tech_watch/china_deep_tech_intel.md) |
+| `06_digital_twin/` | Simbiyotik sistemin tüm katmanlarını gerçek zamanlı görselleştiren arayüz. | FastAPI, WebSockets, HTML/JS, Digital Twin Telemetry | [app.py](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/06_digital_twin/app.py), [index.html](file:///g:/Di%C4%9Fer%20bilgisayarlar/Diz%C3%BCst%C3%BC%20Bilgisayar%C4%B1m/github%20repolar%C4%B1m/yarinin-yarislari/06_digital_twin/templates/index.html) |
+
 
 ---
 
@@ -139,6 +141,14 @@ Aşırı ısı altında bataryanın ömür (SOH) kaybını ve CPU/motor gücün�
 python 04_energy_dynamics/battery_optimizer.py
 ```
 
+### 5. Faz 6: Dijital İkiz ve Gerçek Zamanlı Telemetri
+Simbiyotik sistemin tüm katmanlarını web arayüzünde (Digital Twin) anlık izlemek için:
+```bash
+pip install fastapi uvicorn websockets
+python 06_digital_twin/app.py
+```
+*Çalıştırdıktan sonra tarayıcınızdan `http://localhost:8000` adresine gidin.*
+
 ---
 
 ## 🎯 Yol Haritası: 2026 - 2030
@@ -148,6 +158,7 @@ python 04_energy_dynamics/battery_optimizer.py
 - [x] **Faz 3:** Katı hal batarya hücre yaşlanma modeli (SOH) ve dinamik termal limit koruması.
 - [x] **Faz 4:** RISC-V Vektör Uzantısı (RVV 1.0) için bare-metal assembly matris çarpım optimizasyonları.
 - [x] **Faz 5:** Uydudan otonom eVTOL trafik protokollerinin (ISAC/5G-A) simüle edilmesi.
+- [x] **Faz 6:** FastAPI ve WebSockets üzerinden çalışan Gerçek Zamanlı Dijital İkiz (Digital Twin) telemetri arayüzünün geliştirilmesi.
 
 ---
 
